@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Chat IA - Test Livre</title>
+  <title>Chat IA - La Voie du Salut</title>
   <style>
     body {
       font-family: 'Arial', sans-serif;
@@ -31,8 +31,13 @@
     .message {
       margin-bottom: 10px;
     }
-    .user { color: blue; font-weight: bold; }
-    .bot { color: green; }
+    .user {
+      color: blue;
+      font-weight: bold;
+    }
+    .bot {
+      color: green;
+    }
     #inputArea {
       display: flex;
       border-top: 1px solid #ccc;
@@ -41,6 +46,7 @@
       flex: 1;
       border: none;
       padding: 10px;
+      outline: none;
     }
     #send {
       border: none;
@@ -49,63 +55,85 @@
       padding: 10px 15px;
       cursor: pointer;
     }
+    #send:hover {
+      background: #45a049;
+    }
   </style>
 </head>
 <body>
-
-<div id="chatbot">
-  <div id="messages"></div>
-  <div id="inputArea">
-    <input type="text" id="input" placeholder="Pose ta question..." />
-    <button id="send">Envoyer</button>
+  <div id="chatbot">
+    <div id="messages">
+      <div class="message bot">🤖 Bienvenue ! Posez des questions sur le livre <i>La Voie du Salut</i>. Exemple : "Quel est le thème principal du livre ?"</div>
+    </div>
+    <div id="inputArea">
+      <input type="text" id="input" placeholder="Pose ta question..." />
+      <button id="send">Envoyer</button>
+    </div>
   </div>
-</div>
 
-<script>
-  const API_KEY = "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"; // Remplace ceci par ta clé OpenRouter
-  const MODEL = "mistralai/mistral-7b-instruct"; // Tu peux changer par : anthropic/claude-3-haiku, meta-llama/...
+  <script>
+    // Remplacez par votre clé API valide depuis https://openrouter.ai/keys
+    const API_KEY = "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";
+    const MODEL = "mistralai/mistral-7b-instruct"; // Vérifiez que ce modèle est disponible sur OpenRouter
 
-  const contexte = `
+    const contexte = `
 Tu es un assistant IA basé uniquement sur un livre intitulé "La Voie du Salut".
 Tu dois répondre uniquement aux questions qui concernent le contenu du livre.
 Si ce n'est pas en rapport, tu dis : "Désolé, je ne peux répondre qu'aux questions liées au livre."
 `;
 
-  document.getElementById("send").onclick = async () => {
-    const input = document.getElementById("input");
-    const messages = document.getElementById("messages");
+    document.getElementById("send").onclick = async () => {
+      const input = document.getElementById("input");
+      const messages = document.getElementById("messages");
 
-    const question = input.value.trim();
-    if (!question) return;
+      const question = input.value.trim();
+      if (!question) return;
 
-    messages.innerHTML += `<div class="message user">👤 Vous : ${question}</div>`;
-    input.value = "";
-
-    try {
-      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${API_KEY}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          model: MODEL,
-          messages: [
-            { role: "system", content: contexte },
-            { role: "user", content: question }
-          ]
-        })
-      });
-
-      const data = await res.json();
-      const reply = data.choices?.[0]?.message?.content || "Pas de réponse.";
-      messages.innerHTML += `<div class="message bot">🤖 IA : ${reply}</div>`;
+      // Afficher le message de l'utilisateur
+      messages.innerHTML += `<div class="message user">👤 Vous : ${question}</div>`;
+      input.value = "";
       messages.scrollTop = messages.scrollHeight;
-    } catch (err) {
-      messages.innerHTML += `<div class="message bot">⚠️ Erreur : ${err.message}</div>`;
-    }
-  };
-</script>
 
+      try {
+        const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${API_KEY}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            model: MODEL,
+            messages: [
+              { role: "system", content: contexte },
+              { role: "user", content: question }
+            ]
+          })
+        });
+
+        // Vérifier si la requête a échoué
+        if (!res.ok) {
+          const errorData = await res.json();
+          throw new Error(`Erreur API ${res.status}: ${errorData.error?.message || JSON.stringify(errorData)}`);
+        }
+
+        const data = await res.json();
+        const reply = data.choices?.[0]?.message?.content || "Pas de réponse de l'IA.";
+        messages.innerHTML += `<div class="message bot">🤖 IA : ${reply}</div>`;
+        messages.scrollTop = messages.scrollHeight;
+      } catch (err) {
+        // Afficher l'erreur dans l'interface et la console
+        messages.innerHTML += `<div class="message bot">⚠️ Erreur : ${err.message}</div>`;
+        console.error("Détails de l'erreur :", err);
+        messages.scrollTop = messages.scrollHeight;
+      }
+    };
+
+    // Permettre l'envoi avec la touche Entrée
+    document.getElementById("input").addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        document.getElementById("send").click();
+      }
+    });
+  </script>
 </body>
 </html>
