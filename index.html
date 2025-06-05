@@ -73,8 +73,8 @@
 
   <script>
     // Remplacez par votre clé API valide depuis https://openrouter.ai/keys
-    const API_KEY = "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";
-    const MODEL = "mistralai/mistral-7b-instruct"; // Vérifiez que ce modèle est disponible sur OpenRouter
+    const API_KEY = "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"; // Mettez votre nouvelle clé ici
+    const MODEL = "mistralai/mistral-7b-instruct"; // Vérifiez que ce modèle est disponible
 
     const contexte = `
 Tu es un assistant IA basé uniquement sur un livre intitulé "La Voie du Salut".
@@ -89,7 +89,6 @@ Si ce n'est pas en rapport, tu dis : "Désolé, je ne peux répondre qu'aux ques
       const question = input.value.trim();
       if (!question) return;
 
-      // Afficher le message de l'utilisateur
       messages.innerHTML += `<div class="message user">👤 Vous : ${question}</div>`;
       input.value = "";
       messages.scrollTop = messages.scrollHeight;
@@ -110,7 +109,6 @@ Si ce n'est pas en rapport, tu dis : "Désolé, je ne peux répondre qu'aux ques
           })
         });
 
-        // Vérifier si la requête a échoué
         if (!res.ok) {
           const errorData = await res.json();
           throw new Error(`Erreur API ${res.status}: ${errorData.error?.message || JSON.stringify(errorData)}`);
@@ -121,14 +119,12 @@ Si ce n'est pas en rapport, tu dis : "Désolé, je ne peux répondre qu'aux ques
         messages.innerHTML += `<div class="message bot">🤖 IA : ${reply}</div>`;
         messages.scrollTop = messages.scrollHeight;
       } catch (err) {
-        // Afficher l'erreur dans l'interface et la console
         messages.innerHTML += `<div class="message bot">⚠️ Erreur : ${err.message}</div>`;
         console.error("Détails de l'erreur :", err);
         messages.scrollTop = messages.scrollHeight;
       }
     };
 
-    // Permettre l'envoi avec la touche Entrée
     document.getElementById("input").addEventListener("keypress", (e) => {
       if (e.key === "Enter") {
         document.getElementById("send").click();
