@@ -72,59 +72,61 @@
   </div>
 
   <script>
-    // Nouvelle clé API
-    const API_KEY = "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";
-    const MODEL = "mistralai/mistral-7b-instruct"; // Vérifiez que ce modèle est disponible
+    // Base de données locale de réponses prédéfinies
+    const responses = [
+      {
+        keywords: ["thème principal", "sujet", "idée principale"],
+        answer: "Le thème principal de *La Voie du Salut* est la quête spirituelle et la recherche de la rédemption à travers la foi et la discipline intérieure. (Remplacez ceci par le vrai thème du livre.)"
+      },
+      {
+        keywords: ["auteur", "écrivain"],
+        answer: "L'auteur de *La Voie du Salut* est [Nom de l'auteur]. (Remplacez par le vrai auteur.)"
+      },
+      {
+        keywords: ["personnages", "héros", "protagoniste"],
+        answer: "Les personnages principaux de *La Voie du Salut* incluent [Nom des personnages]. Ils jouent un rôle clé dans l'exploration des thèmes spirituels du livre. (Remplacez par les vrais personnages.)"
+      },
+      {
+        keywords: ["résumé", "histoire", "synopsis"],
+        answer: "Le livre *La Voie du Salut* raconte l'histoire d'une personne en quête de vérité spirituelle dans un monde complexe. (Ajoutez un résumé précis ici.)"
+      },
+      {
+        keywords: ["leçon", "message", "morale"],
+        answer: "La leçon principale de *La Voie du Salut* est l'importance de la persévérance et de la foi face aux épreuves. (Adaptez avec le message réel du livre.)"
+      }
+    ];
 
-    const contexte = `
-Tu es un assistant IA basé uniquement sur un livre intitulé "La Voie du Salut".
-Tu dois répondre uniquement aux questions qui concernent le contenu du livre.
-Si ce n'est pas en rapport, tu dis : "Désolé, je ne peux répondre qu'aux questions liées au livre."
-`;
+    // Fonction pour trouver une réponse basée sur les mots-clés
+    function findResponse(question) {
+      const lowerQuestion = question.toLowerCase();
+      for (const response of responses) {
+        for (const keyword of response.keywords) {
+          if (lowerQuestion.includes(keyword)) {
+            return response.answer;
+          }
+        }
+      }
+      return "Désolé, je ne peux répondre qu'aux questions liées au livre *La Voie du Salut*. Essayez une question comme : 'Quel est le thème principal du livre ?'";
+    }
 
-    document.getElementById("send").onclick = async () => {
+    document.getElementById("send").onclick = () => {
       const input = document.getElementById("input");
       const messages = document.getElementById("messages");
 
       const question = input.value.trim();
       if (!question) return;
 
+      // Afficher la question de l'utilisateur
       messages.innerHTML += `<div class="message user">👤 Vous : ${question}</div>`;
       input.value = "";
+
+      // Trouver et afficher la réponse
+      const reply = findResponse(question);
+      messages.innerHTML += `<div class="message bot">🤖 IA : ${reply}</div>`;
       messages.scrollTop = messages.scrollHeight;
-
-      try {
-        const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${API_KEY}`,
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            model: MODEL,
-            messages: [
-              { role: "system", content: contexte },
-              { role: "user", content: question }
-            ]
-          })
-        });
-
-        if (!res.ok) {
-          const errorData = await res.json();
-          throw new Error(`Erreur API ${res.status}: ${errorData.error?.message || JSON.stringify(errorData)}`);
-        }
-
-        const data = await res.json();
-        const reply = data.choices?.[0]?.message?.content || "Pas de réponse de l'IA.";
-        messages.innerHTML += `<div class="message bot">🤖 IA : ${reply}</div>`;
-        messages.scrollTop = messages.scrollHeight;
-      } catch (err) {
-        messages.innerHTML += `<div class="message bot">⚠️ Erreur : ${err.message}</div>`;
-        console.error("Détails de l'erreur :", err);
-        messages.scrollTop = messages.scrollHeight;
-      }
     };
 
+    // Permettre l'envoi avec la touche Entrée
     document.getElementById("input").addEventListener("keypress", (e) => {
       if (e.key === "Enter") {
         document.getElementById("send").click();
